@@ -1,17 +1,17 @@
 // Enemy, Player, Gem and Key classes will use this class
-var Entity = function (sprite, x, y, displayed){
+var All_Entity = function (sprite, x, y, displayed){
     this.sprite = sprite;
     this.x = x;
     this.y = y;
     this.displayed = displayed;
 };
 
-Entity.prototype.render = function(){
+All_Entity.prototype.render = function(){
     if (this.displayed){
         ctx.drawImage(Resources.get(this.sprite), this.x*offsetX, this.y*offsetY-25);
     }
 };
-Entity.prototype.update = function(dt){
+All_Entity.prototype.update = function(dt){
     // noop
 };
 
@@ -19,12 +19,12 @@ Entity.prototype.update = function(dt){
 var Enemy = function(x, y) {
     /*
      * Enemy constructor will take the initial position (x,y) and add
-     * Then, it will call Entity construtor with 'enemy-bug' image path.
+     * Then, it will call All_Entity construtor with 'enemy-bug' image path.
      */
-    Entity.call(this, 'images/enemy-bug.png', x, y, true);
-}
-// Enherit the render function from Entity
-Enemy.prototype = Object.create(Entity.prototype);
+    All_Entity.call(this, 'images/enemy-bug.png', x, y, true);
+};
+// Enherit the render function from All_Entity
+Enemy.prototype = Object.create(All_Entity.prototype);
 Enemy.prototype.constructor = Enemy;
 
 // Update the enemy's position, required method for game
@@ -39,7 +39,7 @@ Enemy.prototype.update = function(dt) {
     else{
         this.x+= dt;
     }
-}
+};
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
@@ -51,14 +51,14 @@ var Player = function() {
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
 
-    Entity.call(this, 'images/char-boy.png', startX, startY, true);
+    All_Entity.call(this, 'images/char-boy.png', startX, startY, true);
 
     this.lives = 4;
     this.gems = 0;
     this.dead = false;
     this.deadSince = Date.now();
-}
-Player.prototype = Object.create(Entity.prototype);
+};
+Player.prototype = Object.create(All_Entity.prototype);
 Player.prototype.constructor = Player;
 
 Player.prototype.handleInput = function(input){
@@ -74,11 +74,11 @@ Player.prototype.handleInput = function(input){
     else if (input=='right' && this.x<numCols-1){
         this.x++;
     }
-}
+};
 
 var getRandomInt = function (min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
-}
+};
 /*
 * Now instantiate your objects.
 * Place all enemy objects in an array called allEnemies
@@ -89,7 +89,7 @@ var getRandomInt = function (min, max) {
 var allEnemies = [];
 
 // Function to init 3 enemies
-function init_enemies(){
+function create_enemies(){
     allEnemies = [];
     for (var i=0; i<3; i++){
         var enemy = new Enemy(getRandomInt(0,numCols-1), i+1);
@@ -105,30 +105,35 @@ var gemSprites = [
 ];
 
 // Function to init 3 gems
-function init_gems(){
+function create_gems(){
     allGems = [];
     for (var i=0; i<3; i++){
-        var gem = new Entity(gemSprites[getRandomInt(0,3)], getRandomInt(0, numCols-1), i+1, true);
+        var gem = new All_Entity(gemSprites[getRandomInt(0,3)], getRandomInt(0, numCols-1), i+1, true);
         allGems.push(gem);
     }
 }
 
 var player;
-function init_player(){
+function create_player(){
     player = new Player();
 }
-
+/*
 var key;
-function init_key(){
-    key = new Entity('images/Key.png', startX, 0, false);
+function create_key(){
+    key = new All_Entity('images/Key.png', startX, 0, false);
 }
-
+*/
+var star;
+function create_star(){
+    star = new All_Entity('images/Star.png', startX, 0, false);
+}
 // Init all entities
-function init_all(){
-    init_enemies();
-    init_gems();
-    init_player();
-    init_key();
+function create_all(){
+    create_enemies();
+    create_gems();
+    create_player();
+    //create_key();
+	create_star();
     document.addEventListener('keyup', playerKeyupListener);
 }
 

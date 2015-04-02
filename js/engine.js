@@ -1,14 +1,3 @@
-// Hello.
-//
-// This is JSHint, a tool that helps to detect errors and potential
-// problems in your JavaScript code.
-//
-// To start, simply enter some JavaScript anywhere on this page. Your
-// report will appear on the right side.
-//
-// Additionally, you can toggle specific options in the Configure
-// menu.
-
 /* Engine.js
  * This file provides the game loop functionality (update entities and render),
  * draws the initial game board on the screen, and then calls the update and
@@ -20,9 +9,10 @@
  * drawn but that is not the case. What's really happening is the entire "scene"
  * is being drawn over and over, presenting the illusion of animation.
  *
- * This engine is available globally via the Engine variable and it also makes
- * the canvas' context (ctx) object globally available to make writing app.js
- * a little simpler to work with.
+ * I also implement a score for the game. For example, the score can increase each time the player reaches the water, 
+ * and it can be reset to 0 when collision occurs.
+ *
+ * Collectables: I added gems to the game, allowing the player to collect them to make the game more interesting.
  */
 
 var Engine = (function(global) {
@@ -44,7 +34,7 @@ var Engine = (function(global) {
         offsetY = 83,
         font = 'Unlock',
         fontSizes = ['30px', '50px', '80px'],
-        colors = ['#F67841', '#67200A', '#F40B0B', '#F4A60B'];
+        colors = ['#F07833', '#000000', '#000000', '#000000'];
 
     var gameOver = false;
     var gameOverTime;
@@ -55,7 +45,7 @@ var Engine = (function(global) {
     var level;
 
     var rowTiles = [
-        'grass',
+        'water',
         'stone',
         'stone',
         'stone',
@@ -103,7 +93,7 @@ var Engine = (function(global) {
                 // Display animation after the player completes a level
                 loadingNextLevelAnimation(dt);
             }
-            else if (key.displayed && key.x==player.x && key.y==player.y){
+            else if (star.displayed && star.x==player.x && star.y==player.y){
                 /*
                  * If the key is displayed and the Player collected it,
                  * we increment the level and start the animation
@@ -147,7 +137,7 @@ var Engine = (function(global) {
         gameOverDisplayed = false;
 
         // This function will init all components: player, allEnemies, allGems and key
-        init_all();
+        create_all();
 
         main();
     }
@@ -179,7 +169,7 @@ var Engine = (function(global) {
 
         // Check if Player collected all Gems
         if (allGems.length===0){
-            key.displayed = true;
+            star.displayed = true;
         }
 
         /*
@@ -317,7 +307,7 @@ var Engine = (function(global) {
             allEnemies.forEach(function(enemy){
                 enemy.displayed=true;
             });
-            init_gems();
+            create_gems();
             topMargin = 0;
             rowTiles.unshift(rowTiles.pop());
             player.y = startY;
@@ -328,7 +318,7 @@ var Engine = (function(global) {
 
     // This function starts the animation when the player collects the key
     function startLoadingNextLevelAnimation(){
-        key.displayed = false;
+        star.displayed = false;
         allEnemies.forEach(function (enemy){
             enemy.displayed = false;
         });
@@ -355,18 +345,18 @@ var Engine = (function(global) {
         });
 
         // Render the key
-        key.render();
+        star.render();
 
         // Render the player
         player.render();
     }
 
     function displayGameOverScreen(){
-        ctx.fillStyle = colors[0];
+        ctx.fillStyle = colors[2];
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = "white";
-        ctx.strokeStyle = colors[1];
+        ctx.strokeStyle = colors[0];
         ctx.textAlign = 'center';
         ctx.font=fontSizes[1]+' '+font;
 
@@ -376,7 +366,7 @@ var Engine = (function(global) {
         var playedTime = gameOverTime - startTime;
         playedTime = msToTime(playedTime);
         ctx.fillText("Total time "+playedTime, canvas.width/2, 4*tileHeight);
-        ctx.fillText("Press any key to restart", canvas.width/2, 5*tileHeight);
+        ctx.fillText("Press any Arrow key to restart", canvas.width/2, 5*tileHeight);
     }
 
     function gameOverKeyupListener(e){
@@ -394,8 +384,8 @@ var Engine = (function(global) {
     }
 
     function displayFooterBoxes(){
-        ctx.fillStyle = "white";
-        ctx.strokeStyle = "green";
+        ctx.fillStyle = "yellow";
+        ctx.strokeStyle = "black";
         ctx.textAlign = "left";
         ctx.lineWidth = 4;
         ctx.fillRect(0, canvas.height-231, canvas.width, 130);
@@ -406,7 +396,7 @@ var Engine = (function(global) {
     }
 
     function displayFooterLivesCount(){
-        ctx.drawImage(Resources.get('images/Heart.png'), 0, (numRows-1) * offsetY + 35);
+        ctx.drawImage(Resources.get('images/Key.png'), 0, (numRows-1) * offsetY + 35);
         ctx.font=fontSizes[1]+' '+font;
         ctx.fillStyle = colors[0];
         ctx.strokeStyle = colors[1];
@@ -419,51 +409,42 @@ var Engine = (function(global) {
         ctx.drawImage(Resources.get('images/Gem Blue.png'), offsetX*2+2, (numRows-1) * offsetY + 15);
         ctx.font=fontSizes[1]+' '+font;
         ctx.fillStyle = colors[0];
-        ctx.strokeStyle = colors[1];
         ctx.lineWidth = 2;
         ctx.fillText("x "+player.gems,offsetX*3+3, numRows * offsetY + 50);
-        ctx.strokeText("x "+player.gems,offsetX*3+3, numRows * offsetY + 50);
     }
 
     function displayFooterLevel(){
         ctx.font=fontSizes[1]+' '+font;
         ctx.fillStyle = colors[0];
-        ctx.strokeStyle = colors[1];
         ctx.lineWidth = 2;
-        ctx.fillText("Level",offsetX*4+10, numRows * offsetY + 30);
-        ctx.strokeText("Level",offsetX*4+10, numRows * offsetY + 30);
+        ctx.fillText("Level",offsetX*4+10, numRows * offsetY + 85);
 
         ctx.textAlign = "right";
-        ctx.fillText(level.currentLevel,offsetX*6, numRows * offsetY + 30);
-        ctx.strokeText(level.currentLevel,offsetX*6, numRows * offsetY + 30);
+        ctx.fillText(level.currentLevel, canvas.width-20, numRows * offsetY + 85);
     }
 
     function displayFooterTime(){
         ctx.textAlign = "left";
         ctx.font=fontSizes[1]+' '+font;
         ctx.fillStyle = colors[0];
-        ctx.strokeStyle = colors[1];
         ctx.lineWidth = 2;
 
         var playedTime = Date.now() - startTime;
         playedTime = msToTime(playedTime);
-        ctx.fillText("Time",offsetX*4+10, numRows * offsetY + 85);
-        ctx.strokeText("Time",offsetX*4+10, numRows * offsetY + 85);
+        ctx.fillText("Time",offsetX*4+10, numRows * offsetY + 30);
         ctx.textAlign = "right";
-        ctx.fillText(playedTime, canvas.width-20, numRows * offsetY + 85);
-        ctx.strokeText(playedTime, canvas.width-20, numRows * offsetY + 85);
+        ctx.fillText(playedTime,offsetX*7.8, numRows * offsetY + 30);
     }
 
     function displayInstructions(){
-        ctx.fillStyle = colors[0];
+        ctx.fillStyle = colors[2];
         ctx.fillRect(0, 6*tileWidth + 2, canvas.width, tileWidth);
-        ctx.fillStyle = "white";
-        ctx.strokeStyle = colors[1];
+        ctx.fillStyle = "yellow";
         ctx.textAlign = 'left';
         ctx.font=fontSizes[0]+' '+font;
         ctx.fillText("1) Use arrow keys to move.", 10, 6.3*tileHeight);
-        ctx.fillText("2) Collect all 3 gems to make the key appear.", 10, 6.6*tileHeight);
-        ctx.fillText("3) Collect the key to advance to next level.", 10, 6.9*tileHeight);
+        ctx.fillText("2) Collect all three gems in order to display the star.", 10, 6.6*tileHeight);
+        ctx.fillText("3) Collect the Star to advance to next Stage.", 10, 6.9*tileHeight);
     }
 
     function displayLoadingNextLevel(){
@@ -472,16 +453,15 @@ var Engine = (function(global) {
         var t = Date.now();
         if ((t-t%500)%1000===0){
             ctx.fillStyle = colors[0];
-            ctx.strokeStyle = colors[1];
+            //ctx.strokeStyle = colors[1];
         }
         else{
             ctx.fillStyle = colors[1];
-            ctx.strokeStyle = colors[0];
+            //ctx.strokeStyle = colors[0];
         }
 
-        ctx.lineWidth = 2;
-        ctx.fillText("Loading Next Level",canvas.width/2, 120);
-        ctx.strokeText("Loading Next Level",canvas.width/2, 120);
+        ctx.lineWidth = 1;
+        ctx.fillText("Loading Next Stage",canvas.width/2, 120);
     }
 
     function displayPlayerDead(){
@@ -489,29 +469,26 @@ var Engine = (function(global) {
         ctx.font = fontSizes[2]+' '+font;
         var t = Date.now();
         if ((t-t%500)%1000===0){
-            ctx.fillStyle = colors[2];
-            ctx.strokeStyle = colors[3];
+            ctx.fillStyle = colors[4];
         }
         else{
-            ctx.fillStyle = colors[3];
-            ctx.strokeStyle = colors[2];
+            ctx.fillStyle = colors[1];
         }
 
         ctx.lineWidth = 2;
 
         var txt = "";
         if (player.lives>1){
-            txt = "Only "+player.lives+" lives left!";
+            txt = "Only "+player.lives+" Points left!";
         }
         else if (player.lives==1){
-            txt = "Only one life left!";
+            txt = "Only one Point is left!";
         }
         else{
             txt = "Game Over!!";
         }
 
         ctx.fillText(txt,canvas.width/2, 280);
-        ctx.strokeText(txt,canvas.width/2, 280);
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -522,7 +499,7 @@ var Engine = (function(global) {
         'images/Gem Blue.png',
         'images/Gem Green.png',
         'images/Gem Orange.png',
-        'images/Heart.png',
+        'images/Key.png',
         'images/background-block.png',
         'images/empty-block.png',
         'images/stone-block.png',
@@ -530,7 +507,7 @@ var Engine = (function(global) {
         'images/grass-block.png',
         'images/enemy-bug.png',
         'images/char-boy.png',
-        'images/Key.png'
+        'images/Star.png'
     ]);
     Resources.onReady(init);
 

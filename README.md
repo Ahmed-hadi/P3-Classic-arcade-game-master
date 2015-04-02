@@ -6,5 +6,5 @@ You can access and play the game from here: http://ahmed-hadi.github.io/P3-Class
 
 # Instructions to play the game:
 * Use arrow keys to move.
-* Collect two gems to make the key appear.
-* Collect the key to advance to next level.
+* Collect three gems to make the Star appear.
+* Collect the Star to advance to next level.
